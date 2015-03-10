@@ -27,7 +27,7 @@ No encoding information is set in the response object, so be careful using
 Response.text: the chardet library will be used to convert the file to a
 unicode type and it may not detect what you actually want.
 
-ENOACES is converted to a 403 status code, and ENOENT is converted to a
+EACCES is converted to a 403 status code, and ENOENT is converted to a
 404. All other IOError types are converted to a 400.
 
 Contributing
