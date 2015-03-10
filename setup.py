@@ -17,7 +17,6 @@ setup(
     author_email='dshea@redhat.com',
     url='http://github.com/dashea/requests-file',
     py_modules=['requests_file'],
-    package_data={'': ['LICENSE', 'README.rst']},
     install_requires=requires,
     license='Apache 2.0',
     test_suite='tests',
