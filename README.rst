@@ -2,7 +2,7 @@ Requests-File
 =============
 
 Requests-File is a transport adapter for use with the `Requests`_ Python
-library to allow local filesystem access via file:// URLs.
+library to allow local filesystem access via file:\/\/ URLs.
 
 To use:
 
@@ -42,4 +42,4 @@ License
 To maximise compatibility with Requests, this code is licensed under the Apache
 license. See LICENSE for more details.
 
-.. _ `Requests`: https://github.com/kennethreitz/requests
+.. _`Requests`: https://github.com/kennethreitz/requests
