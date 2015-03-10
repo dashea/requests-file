@@ -32,7 +32,7 @@ BuildRequires:  python3-requests
 BuildRequires:  python3-six
 
 Requires:       python3-requests
-BuildRequires:  python3-six
+Requires:       python3-six
 
 %description -n python3-requests-file
 Requests-File is a transport adapter for use with the Requests Python
