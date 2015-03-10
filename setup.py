@@ -11,7 +11,7 @@ requires = [line.strip() for line in open("requirements.txt").readlines()]
 
 setup(
     name='requests-file',
-    version='0.1',
+    version='1.0',
     description='File transport adapter for Requests',
     author='David Shea',
     author_email='dshea@redhat.com',
