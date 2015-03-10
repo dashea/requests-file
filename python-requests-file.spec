@@ -47,7 +47,7 @@ pushd python2
 rm -rf requests-file.egg-info
 
 # Copy common doc files to top dir
-cp -pr LICENSE ../
+cp -pr LICENSE README.rst ../
 
 popd
 
@@ -82,11 +82,13 @@ popd
 
 %files
 %license LICENSE
+%doc README.rst
 %{python2_sitelib}/requests_file.py*
 %{python2_sitelib}/requests_file*.egg-info*
 
 %files -n python3-requests-file
 %license LICENSE
+%doc README.rst
 %{python3_sitelib}/requests_file.py*
 %{python3_sitelib}/__pycache__/requests_file.*
 %{python3_sitelib}/requests_file*.egg-info*
