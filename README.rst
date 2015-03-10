@@ -33,7 +33,7 @@ EACCES is converted to a 403 status code, and ENOENT is converted to a
 Contributing
 ------------
 
-Contributions welcome! Feel free to open a pull requests against
+Contributions welcome! Feel free to open a pull request against
 https://github.com/dashea/requests-file
 
 License
