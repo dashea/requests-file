@@ -1,5 +1,5 @@
 from requests.adapters import BaseAdapter
-from requests.compat import urlparse
+from requests.compat import urlparse, unquote
 from requests import Response
 import errno
 import os
@@ -30,8 +30,25 @@ class FileAdapter(BaseAdapter):
         resp = Response()
 
         # Open the file, translate certain errors into HTTP responses
+        # Use urllib's unquote to translate percent escapes into whatever
+        # they actually need to be
         try:
-            resp.raw = open(url_parts.path, "rb")
+            # Split the path on / (the URL directory separator) and decode any
+            # % escapes in the parts
+            path_parts = [unquote(p) for p in url_parts.path.split('/')]
+
+            # If os.sep is in any of the parts, someone fed us some shenanigans.
+            # Treat is like a missing file.
+            if any(os.sep in p for p in path_parts):
+                raise IOError(errno.ENOENT, os.strerror(errno.ENOENT))
+
+            # Put it the path back together
+            # [0] will be an empty string, so stick os.sep in there to make
+            # the path absolute
+            path_parts[0] = os.sep
+            path = os.path.join(*path_parts)
+
+            resp.raw = open(path, "rb")
         except IOError as e:
             if e.errno == errno.EACCES:
                 resp.status_code = 403
