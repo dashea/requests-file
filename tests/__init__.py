@@ -4,6 +4,7 @@ from requests_file import FileAdapter
 
 import os, stat
 import tempfile
+import shutil
 
 class FileRequestTestCase(unittest.TestCase):
     def setUp(self):
@@ -48,3 +49,48 @@ class FileRequestTestCase(unittest.TestCase):
             self.assertTrue(response.text)
         finally:
             locale.setlocale(locale.LC_MESSAGES, saved_locale)
+
+    def test_fetch_post(self):
+        # Make sure that non-GET methods are rejected
+        self.assertRaises(ValueError, self._session.post,
+                ("file://%s" % os.path.abspath(__file__)))
+
+    def test_fetch_nonlocal(self):
+        # Make sure that network locations are rejected
+        self.assertRaises(ValueError, self._session.get,
+                ("file://example.com%s" % os.path.abspath(__file__)))
+        self.assertRaises(ValueError, self._session.get,
+                ("file://localhost:8080%s" % os.path.abspath(__file__)))
+
+        # localhost is ok, though
+        with open(__file__, "rb") as f:
+            testdata = f.read()
+        response = self._session.get("file://localhost%s" % os.path.abspath(__file__))
+        self.assertEqual(response.content, testdata)
+
+    def test_funny_names(self):
+        testdata = 'yo wassup man\n'.encode('ascii')
+        tmpdir = tempfile.mkdtemp()
+
+        try:
+            with open(os.path.join(tmpdir, 'spa ces'), "w+b") as space_file:
+                space_file.write(testdata)
+                space_file.flush()
+                response = self._session.get("file://%s/spa%%20ces" % tmpdir)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.content, testdata)
+
+            with open(os.path.join(tmpdir, 'per%cent'), "w+b") as percent_file:
+                percent_file.write(testdata)
+                percent_file.flush()
+                response = self._session.get("file://%s/per%%25cent" % tmpdir)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.content, testdata)
+
+            # percent-encoded directory separators should be rejected
+            with open(os.path.join(tmpdir, 'badname'), "w+b") as bad_file:
+                response = self._session.get("file://%s%%2Fbadname" % tmpdir)
+                self.assertEqual(response.status_code, 404)
+
+        finally:
+            shutil.rmtree(tmpdir)
