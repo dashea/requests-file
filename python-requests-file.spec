@@ -44,7 +44,7 @@ This is the Python 3 version of the requests_file module
 %setup -qc
 mv requests-file-%{version} python2
 pushd python2
-rm -rf requests-file.egg-info
+rm -rf requests_file.egg-info
 
 # Copy common doc files to top dir
 cp -pr LICENSE README.rst ../
