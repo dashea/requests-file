@@ -1,5 +1,5 @@
 Name:           python-requests-file
-Version:        1.0
+Version:        1.1
 Release:        1%{?dist}
 Summary:        Transport adapter for using file:// URLs with python-requests
 
@@ -94,5 +94,9 @@ popd
 %{python3_sitelib}/requests_file*.egg-info*
 
 %changelog
+* Thu Mar 12 2015 David Shea <dshea@redhat.com> - 1.1-1
+- Added handing for %% escapes in URLs
+- Proofread the README
+
 * Tue Mar 10 2015 David Shea <dshea@redhat.com> - 1.0-1
 - Initial package
