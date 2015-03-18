@@ -50,6 +50,14 @@ class FileRequestTestCase(unittest.TestCase):
         finally:
             locale.setlocale(locale.LC_MESSAGES, saved_locale)
 
+    def test_head(self):
+        # Check that HEAD returns the content-length
+        testlen = os.stat(__file__).st_size
+        response = self._session.head("file://%s" % os.path.abspath(__file__))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Length'], testlen)
+
     def test_fetch_post(self):
         # Make sure that non-GET methods are rejected
         self.assertRaises(ValueError, self._session.post,

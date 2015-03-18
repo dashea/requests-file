@@ -17,7 +17,7 @@ class FileAdapter(BaseAdapter):
         """
 
         # Check that the method makes sense. Only support GET
-        if request.method != "GET":
+        if request.method not in ("GET", "HEAD"):
             raise ValueError("Invalid request method %s" % request.method)
 
         # Parse the URL
