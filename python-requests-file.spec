@@ -19,7 +19,7 @@ Requires:       python-six
 
 %description
 Requests-File is a transport adapter for use with the Requests Python
-library to allow local filesystem access via file:// URLs.
+library to allow local file system access via file:// URLs.
 
 This is the Python 2 version of the requests_file module
 
@@ -36,7 +36,7 @@ Requires:       python3-six
 
 %description -n python3-requests-file
 Requests-File is a transport adapter for use with the Requests Python
-library to allow local filesystem access via file:// URLs.
+library to allow local file system access via file:// URLs.
 
 This is the Python 3 version of the requests_file module
 
@@ -69,6 +69,15 @@ popd
 
 pushd python3
 %{__python3} setup.py install --skip-build --root %{buildroot}
+popd
+
+%check
+pushd python2
+%{__python2} setup.py test
+popd
+
+pushd python3
+%{__python3} setup.py test
 popd
 
 %files
