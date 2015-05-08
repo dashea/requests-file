@@ -1,3 +1,8 @@
+1.2 (8 May 2015)
+=================
+
+- Added support for HEAD requests
+
 1.1 (12 Mar 2015)
 =================
 
