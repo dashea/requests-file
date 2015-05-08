@@ -71,15 +71,6 @@ pushd python3
 %{__python3} setup.py install --skip-build --root %{buildroot}
 popd
 
-%check
-pushd python2
-%{__python2} setup.py test
-popd
-
-pushd python3
-%{__python3} setup.py test
-popd
-
 %files
 %license LICENSE
 %doc README.rst
