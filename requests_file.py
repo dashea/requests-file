@@ -5,6 +5,7 @@ import errno
 import os
 import stat
 import locale
+import io
 
 from six import BytesIO
 
@@ -48,7 +49,10 @@ class FileAdapter(BaseAdapter):
             path_parts[0] = os.sep
             path = os.path.join(*path_parts)
 
-            resp.raw = open(path, "rb")
+            # Use io.open since we need to add a release_conn method, and
+            # methods can't be added to file objects in python 2.
+            resp.raw = io.open(path, "rb")
+            resp.raw.release_conn = resp.raw.close
         except IOError as e:
             if e.errno == errno.EACCES:
                 resp.status_code = 403
@@ -63,6 +67,9 @@ class FileAdapter(BaseAdapter):
             resp_str = str(e).encode(locale.nl_langinfo(locale.CODESET))
             resp.raw = BytesIO(resp_str)
             resp.headers['Content-Length'] = len(resp_str)
+
+            # Add release_conn to the BytesIO object
+            resp.raw.release_conn = resp.raw.close
         else:
             resp.status_code = 200
 

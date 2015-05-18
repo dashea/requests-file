@@ -102,3 +102,15 @@ class FileRequestTestCase(unittest.TestCase):
 
         finally:
             shutil.rmtree(tmpdir)
+
+    def test_close(self):
+        # Open a request for this file
+        response = self._session.get("file://%s" % os.path.abspath(__file__))
+
+        # Try closing it
+        response.close()
+
+    def test_missing_close(self):
+        # Make sure non-200 responses can be closed
+        response = self._session.get("file:///no/such/path")
+        response.close()
