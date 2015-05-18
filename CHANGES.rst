@@ -1,3 +1,8 @@
+1.3.1 (18 May 2015)
+==================
+
+- Add python version classifiers to the package info
+
 1.3 (18 May 2015)
 =================
 
