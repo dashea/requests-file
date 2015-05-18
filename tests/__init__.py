@@ -17,14 +17,14 @@ class FileRequestTestCase(unittest.TestCase):
             testdata = f.read()
         response = self._session.get("file://%s" % os.path.abspath(__file__))
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, requests.codes.ok)
         self.assertEqual(response.headers['Content-Length'], len(testdata))
         self.assertEqual(response.content, testdata)
 
     def test_fetch_missing(self):
         # Fetch a file that (hopefully) doesn't exist, look for a 404
         response = self._session.get("file:///no/such/path")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, requests.codes.not_found)
         self.assertTrue(response.text)
 
     def test_fetch_no_access(self):
@@ -34,7 +34,7 @@ class FileRequestTestCase(unittest.TestCase):
             os.chmod(tmp.name, 0)
             response = self._session.get("file://%s" % os.path.abspath(tmp.name))
 
-            self.assertEqual(response.status_code, 403)
+            self.assertEqual(response.status_code, requests.codes.forbidden)
             self.assertTrue(response.text)
 
     def test_fetch_missing_localized(self):
@@ -45,7 +45,7 @@ class FileRequestTestCase(unittest.TestCase):
         try:
             locale.setlocale(locale.LC_MESSAGES, 'ru_RU.UTF-8')
             response = self._session.get("file:///no/such/path")
-            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.status_code, requests.codes.not_found)
             self.assertTrue(response.text)
         finally:
             locale.setlocale(locale.LC_MESSAGES, saved_locale)
@@ -55,7 +55,7 @@ class FileRequestTestCase(unittest.TestCase):
         testlen = os.stat(__file__).st_size
         response = self._session.head("file://%s" % os.path.abspath(__file__))
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, requests.codes.ok)
         self.assertEqual(response.headers['Content-Length'], testlen)
 
     def test_fetch_post(self):
@@ -85,20 +85,20 @@ class FileRequestTestCase(unittest.TestCase):
                 space_file.write(testdata)
                 space_file.flush()
                 response = self._session.get("file://%s/spa%%20ces" % tmpdir)
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, requests.codes.ok)
                 self.assertEqual(response.content, testdata)
 
             with open(os.path.join(tmpdir, 'per%cent'), "w+b") as percent_file:
                 percent_file.write(testdata)
                 percent_file.flush()
                 response = self._session.get("file://%s/per%%25cent" % tmpdir)
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, requests.codes.ok)
                 self.assertEqual(response.content, testdata)
 
             # percent-encoded directory separators should be rejected
             with open(os.path.join(tmpdir, 'badname'), "w+b") as bad_file:
                 response = self._session.get("file://%s%%2Fbadname" % tmpdir)
-                self.assertEqual(response.status_code, 404)
+                self.assertEqual(response.status_code, requests.codes.not_found)
 
         finally:
             shutil.rmtree(tmpdir)

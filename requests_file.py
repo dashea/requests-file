@@ -1,6 +1,6 @@
 from requests.adapters import BaseAdapter
 from requests.compat import urlparse, unquote
-from requests import Response
+from requests import Response, codes
 import errno
 import os
 import stat
@@ -55,11 +55,11 @@ class FileAdapter(BaseAdapter):
             resp.raw.release_conn = resp.raw.close
         except IOError as e:
             if e.errno == errno.EACCES:
-                resp.status_code = 403
+                resp.status_code = codes.forbidden
             elif e.errno == errno.ENOENT:
-                resp.status_code = 404
+                resp.status_code = codes.not_found
             else:
-                resp.status_code = 400
+                resp.status_code = codes.bad_request
 
             # Wrap the error message in a file-like object
             # The error message will be localized, try to convert the string
@@ -71,7 +71,7 @@ class FileAdapter(BaseAdapter):
             # Add release_conn to the BytesIO object
             resp.raw.release_conn = resp.raw.close
         else:
-            resp.status_code = 200
+            resp.status_code = codes.ok
 
             # If it's a regular file, set the Content-Length
             resp_stat = os.fstat(resp.raw.fileno())
