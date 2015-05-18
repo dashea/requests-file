@@ -1,5 +1,5 @@
 Name:           python-requests-file
-Version:        1.2
+Version:        1.3
 Release:        1%{?dist}
 Summary:        Transport adapter for using file:// URLs with python-requests
 
@@ -94,6 +94,10 @@ popd
 %{python3_sitelib}/requests_file*.egg-info*
 
 %changelog
+* Mon May 18 2015 David Shea <dshea@redhat.com> - 1.3-1
+- Fix a crash when closing a file response.
+- Use named aliases instead of integers for status codes.
+
 * Fri May  8 2015 David Shea <dshea@redhat.com> - 1.2-1
 - Added support for HEAD requests
 

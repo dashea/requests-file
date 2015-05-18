@@ -1,3 +1,9 @@
+1.3 (18 May 2015)
+=================
+
+- Fix a crash when closing a file response.
+- Use named aliases instead of integers for status codes.
+
 1.2 (8 May 2015)
 =================
 
