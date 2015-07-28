@@ -64,7 +64,7 @@ class FileAdapter(BaseAdapter):
             # Wrap the error message in a file-like object
             # The error message will be localized, try to convert the string
             # representation of the exception into a byte stream
-            resp_str = str(e).encode(locale.nl_langinfo(locale.CODESET))
+            resp_str = str(e).encode(locale.getpreferredencoding(False))
             resp.raw = BytesIO(resp_str)
             resp.headers['Content-Length'] = len(resp_str)
 
