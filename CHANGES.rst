@@ -1,3 +1,10 @@
+1.4 (24 Aug 2015)
+=================
+
+- Use getprerredencoding instead of nl_langinfo (github issue #1)
+- Handle files with a drive component (github issue #2)
+- Fix some issues with running the tests on Windows
+
 1.3.1 (18 May 2015)
 ==================
 

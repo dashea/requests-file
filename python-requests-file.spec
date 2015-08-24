@@ -1,5 +1,5 @@
 Name:           python-requests-file
-Version:        1.3.1
+Version:        1.4
 Release:        1%{?dist}
 Summary:        Transport adapter for using file:// URLs with python-requests
 
@@ -94,6 +94,11 @@ popd
 %{python3_sitelib}/requests_file*.egg-info*
 
 %changelog
+* Mon Aug 24 2015 David Shea <dshea@redhat.com> - 1.4-1
+- Use getprerredencoding instead of nl_langinfo
+- Handle files with a drive component
+- Rearrange the spec file to the current Fedora packaging guidelines.
+
 * Mon May 18 2015 David Shea <dshea@redhat.com> - 1.3.1-1
 - Add python version classifiers to the package info
 
