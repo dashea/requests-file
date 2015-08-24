@@ -5,6 +5,7 @@ from requests_file import FileAdapter
 import os, stat
 import tempfile
 import shutil
+import platform
 
 class FileRequestTestCase(unittest.TestCase):
     def setUp(self):
@@ -42,6 +43,8 @@ class FileRequestTestCase(unittest.TestCase):
 
             response.close()
 
+    @unittest.skipIf(platform.system() == "Windows",
+                     "skipping locale test on windows")
     def test_fetch_missing_localized(self):
         # Make sure translated error messages don't cause any problems
         import locale
