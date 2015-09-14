@@ -1,13 +1,25 @@
-Name:           python-requests-file
+%global srcname requests-file
+
+Name:           python-%{srcname}
 Version:        1.4
 Release:        1%{?dist}
 Summary:        Transport adapter for using file:// URLs with python-requests
 
 License:        ASL 2.0
 URL:            https://github.com/dashea/requests-file
-Source0:        https://pypi.python.org/packages/source/r/requests-file/requests-file-%{version}.tar.gz
+Source0:        https://pypi.python.org/packages/source/r/%{srcname}/%{srcname}-%{version}.tar.gz
 
 BuildArch:      noarch
+
+%description
+Requests-File is a transport adapter for use with the Requests Python
+library to allow local file system access via file:// URLs.
+
+This is the Python 2 version of the requests_file module
+
+%package -n python2-%{srcname}
+Summary:        Transport adapter for using file:// URLs with python-requests
+%{?python_provide:%python_provide python2-%{srcname}}
 
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
@@ -17,7 +29,7 @@ BuildRequires:  python-six
 Requires:       python-requests
 Requires:       python-six
 
-%description
+%description -n python2-%{srcname}
 Requests-File is a transport adapter for use with the Requests Python
 library to allow local file system access via file:// URLs.
 
@@ -25,6 +37,7 @@ This is the Python 2 version of the requests_file module
 
 %package -n python3-requests-file
 Summary:        Transport adapter for using file:// URLs with python3-requests
+%{?python_provide:%python_provide python3-%{srcname}}
 
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
@@ -41,46 +54,22 @@ library to allow local file system access via file:// URLs.
 This is the Python 3 version of the requests_file module
 
 %prep
-%setup -qc
-mv requests-file-%{version} python2
-pushd python2
+%autosetup -n %{srcname}-%{version}
 rm -rf requests_file.egg-info
 
-# Copy common doc files to top dir
-cp -pr LICENSE README.rst ../
-
-popd
-
-cp -a python2 python3
-
 %build
-pushd python2
-%{__python2} setup.py build
-popd
-
-pushd python3
-%{__python3} setup.py build
-popd
+%py2_build
+%py3_build
 
 %install
-pushd python2
-%{__python2} setup.py install --skip-build --root %{buildroot}
-popd
-
-pushd python3
-%{__python3} setup.py install --skip-build --root %{buildroot}
-popd
+%py2_install
+%py3_install
 
 %check
-pushd python2
 %{__python2} setup.py test
-popd
-
-pushd python3
 %{__python3} setup.py test
-popd
 
-%files
+%files -n python2-%{srcname}
 %license LICENSE
 %doc README.rst
 %{python2_sitelib}/requests_file.py*
@@ -94,10 +83,10 @@ popd
 %{python3_sitelib}/requests_file*.egg-info*
 
 %changelog
-* Mon Aug 24 2015 David Shea <dshea@redhat.com> - 1.4-1
+* Mon Sep 14 2015 David Shea <dshea@redhat.com> - 1.4-1
 - Use getprerredencoding instead of nl_langinfo
 - Handle files with a drive component
-- Rearrange the spec file to the current Fedora packaging guidelines.
+- Switch to the new Fedora packaging guidelines, which renames python-requests-file to python2-requests-file
 
 * Mon May 18 2015 David Shea <dshea@redhat.com> - 1.3.1-1
 - Add python version classifiers to the package info
