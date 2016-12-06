@@ -162,3 +162,11 @@ class FileRequestTestCase(unittest.TestCase):
         self.assertEqual(response.headers['Content-Length'], len(testdata))
         self.assertEqual(response.content, testdata)
         response.close()
+
+    def test_url_is_set(self):
+        # Open a request for this file
+        uri = "file://%s" % self._pathToURL(os.path.abspath(__file__))
+        response = self._session.get(uri)
+        self.assertEqual(uri, response.url)
+        response.close()
+
