@@ -97,6 +97,7 @@ class FileAdapter(BaseAdapter):
             resp.raw.release_conn = resp.raw.close
         else:
             resp.status_code = codes.ok
+            resp.url = request.url
 
             # If it's a regular file, set the Content-Length
             resp_stat = os.fstat(resp.raw.fileno())
