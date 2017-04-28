@@ -36,7 +36,7 @@ class FileAdapter(BaseAdapter):
         try:
             # Split the path on / (the URL directory separator) and decode any
             # % escapes in the parts
-            path_parts = [unquote(p) for p in url_parts.path.split('/')]
+            path_parts = [unquote(p) for p in url_parts.path.split(os.sep)]
 
             # Strip out the leading empty parts created from the leading /'s
             while path_parts and not path_parts[0]:
