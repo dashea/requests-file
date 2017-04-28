@@ -1,3 +1,7 @@
+1.4.2 (28 Apr 2017)
+===================
+- Set the response URL to the request URL
+
 1.4.1 (13 Oct 2016)
 ===================
 - Add a wheel distribution
