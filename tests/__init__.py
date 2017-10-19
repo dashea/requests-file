@@ -75,6 +75,8 @@ class FileRequestTestCase(unittest.TestCase):
             self.assertEqual(response.status_code, requests.codes.not_found)
             self.assertTrue(response.text)
             response.close()
+        except locale.Error:
+            unittest.SkipTest('ru_RU.UTF-8 locale not available')
         finally:
             locale.setlocale(locale.LC_MESSAGES, saved_locale)
 
