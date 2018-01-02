@@ -50,6 +50,8 @@ class FileRequestTestCase(unittest.TestCase):
         self.assertTrue(response.text)
         response.close()
 
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0,
+                     "Skipping permissions test since running as root")
     def test_fetch_no_access(self):
         # Create a file and remove read permissions, try to get a 403
         # probably doesn't work on windows
