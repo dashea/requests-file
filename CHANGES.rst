@@ -1,3 +1,8 @@
+1.4.3 (2 Jan 2018)
+==================
+- Skip the permissions test when running as root
+- Handle missing locale in tests
+
 1.4.2 (28 Apr 2017)
 ===================
 - Set the response URL to the request URL
