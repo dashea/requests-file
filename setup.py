@@ -20,11 +20,11 @@ setup(
     install_requires=requires,
     license='Apache 2.0',
     test_suite='tests',
-    classifiers=('Development Status :: 3 - Alpha',
+    classifiers=['Development Status :: 3 - Alpha',
                  'Environment :: Plugins',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: Apache Software License',
                  'Programming Language :: Python :: 2.7',
                  'Programming Language :: Python :: 3.4'
-                 )
+                 ]
     )
