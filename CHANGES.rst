@@ -1,3 +1,7 @@
+1.4.4 (23 Apr 2020)
+==================
+- Add set_content_length flag to disable on demand setting Content-Length
+
 1.4.3 (2 Jan 2018)
 ==================
 - Skip the permissions test when running as root

@@ -10,6 +10,10 @@ import io
 from six import BytesIO
 
 class FileAdapter(BaseAdapter):
+    def __init__(self, set_content_length=True):
+        super().__init__()
+        self._set_content_length = set_content_length
+
     def send(self, request, **kwargs):
         """ Wraps a file, described in request, in a Response object.
 
@@ -91,7 +95,8 @@ class FileAdapter(BaseAdapter):
             # representation of the exception into a byte stream
             resp_str = str(e).encode(locale.getpreferredencoding(False))
             resp.raw = BytesIO(resp_str)
-            resp.headers['Content-Length'] = len(resp_str)
+            if self._set_content_length:
+                resp.headers['Content-Length'] = len(resp_str)
 
             # Add release_conn to the BytesIO object
             resp.raw.release_conn = resp.raw.close
@@ -101,7 +106,7 @@ class FileAdapter(BaseAdapter):
 
             # If it's a regular file, set the Content-Length
             resp_stat = os.fstat(resp.raw.fileno())
-            if stat.S_ISREG(resp_stat.st_mode):
+            if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
                 resp.headers['Content-Length'] = resp_stat.st_size
 
         return resp
