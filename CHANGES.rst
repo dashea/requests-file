@@ -1,4 +1,4 @@
-1.4.4 (23 Apr 2020)
+1.5.0 (23 Apr 2020)
 ==================
 - Add set_content_length flag to disable on demand setting Content-Length
 
