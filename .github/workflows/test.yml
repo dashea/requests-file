@@ -1,4 +1,4 @@
-name: Test
+name: CI
 on: [push, pull_request]
 
 jobs:
@@ -27,3 +27,17 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.x"
+      - name: Install black
+        run: pip install black
+
+      - name: Run black
+        run: black --check .
