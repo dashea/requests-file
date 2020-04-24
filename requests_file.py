@@ -9,9 +9,10 @@ import io
 
 from six import BytesIO
 
+
 class FileAdapter(BaseAdapter):
     def __init__(self, set_content_length=True):
-        super().__init__()
+        super(FileAdapter, self).__init__()
         self._set_content_length = set_content_length
 
     def send(self, request, **kwargs):
@@ -40,7 +41,7 @@ class FileAdapter(BaseAdapter):
         try:
             # Split the path on / (the URL directory separator) and decode any
             # % escapes in the parts
-            path_parts = [unquote(p) for p in url_parts.path.split('/')]
+            path_parts = [unquote(p) for p in url_parts.path.split("/")]
 
             # Strip out the leading empty parts created from the leading /'s
             while path_parts and not path_parts[0]:
@@ -55,16 +56,17 @@ class FileAdapter(BaseAdapter):
             # so that a directory separator can correctly be added to the real
             # path, and remove any empty path parts between the drive and the path.
             # Assume that a part ending with : or | (legacy) is a drive.
-            if path_parts and (path_parts[0].endswith('|') or
-                               path_parts[0].endswith(':')):
+            if path_parts and (
+                path_parts[0].endswith("|") or path_parts[0].endswith(":")
+            ):
                 path_drive = path_parts.pop(0)
-                if path_drive.endswith('|'):
-                    path_drive = path_drive[:-1] + ':'
+                if path_drive.endswith("|"):
+                    path_drive = path_drive[:-1] + ":"
 
                 while path_parts and not path_parts[0]:
                     path_parts.pop(0)
             else:
-                path_drive = ''
+                path_drive = ""
 
             # Try to put the path back together
             # Join the drive back in, and stick os.sep in front of the path to
@@ -96,7 +98,7 @@ class FileAdapter(BaseAdapter):
             resp_str = str(e).encode(locale.getpreferredencoding(False))
             resp.raw = BytesIO(resp_str)
             if self._set_content_length:
-                resp.headers['Content-Length'] = len(resp_str)
+                resp.headers["Content-Length"] = len(resp_str)
 
             # Add release_conn to the BytesIO object
             resp.raw.release_conn = resp.raw.close
@@ -107,7 +109,7 @@ class FileAdapter(BaseAdapter):
             # If it's a regular file, set the Content-Length
             resp_stat = os.fstat(resp.raw.fileno())
             if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
-                resp.headers['Content-Length'] = resp_stat.st_size
+                resp.headers["Content-Length"] = resp_stat.st_size
 
         return resp
 
