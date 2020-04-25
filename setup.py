@@ -9,7 +9,7 @@ requires = [line.strip() for line in open("requirements.txt").readlines()]
 
 setup(
     name="requests-file",
-    version="1.5.0",
+    version="1.5.1",
     description="File transport adapter for Requests",
     author="David Shea",
     author_email="reallylongword@gmail.com",
@@ -24,6 +24,6 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3",
     ],
 )
