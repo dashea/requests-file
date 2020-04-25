@@ -1,3 +1,10 @@
+1.5.1 (25 Apr 2020)
+===================
+- Fix python 2.7 compatibility
+- Rename test file for pytest
+- Add tests via github actions
+- Format code with black
+
 1.5.0 (23 Apr 2020)
 ==================
 - Add set_content_length flag to disable on demand setting Content-Length
