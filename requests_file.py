@@ -16,10 +16,10 @@ class FileAdapter(BaseAdapter):
         self._set_content_length = set_content_length
 
     def send(self, request, **kwargs):
-        """ Wraps a file, described in request, in a Response object.
+        """Wraps a file, described in request, in a Response object.
 
-            :param request: The PreparedRequest` being "sent".
-            :returns: a Response object containing the file
+        :param request: The PreparedRequest` being "sent".
+        :returns: a Response object containing the file
         """
 
         # Check that the method makes sense. Only support GET
