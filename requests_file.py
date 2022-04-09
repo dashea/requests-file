@@ -6,8 +6,10 @@ import os
 import stat
 import locale
 import io
-
-from six import BytesIO
+try:
+    from io import BytesIO
+except ImportError:
+    from StringIO import StringIO as BytesIO
 
 
 class FileAdapter(BaseAdapter):
