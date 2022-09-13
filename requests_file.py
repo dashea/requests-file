@@ -11,6 +11,10 @@ try:
 except ImportError:
     from StringIO import StringIO as BytesIO
 
+_io2httperror = {
+    errno.EACCES: codes.forbidden,
+    errno.ENOENT: codes.not_found,
+}
 
 class FileAdapter(BaseAdapter):
     def __init__(self, set_content_length=True):
@@ -87,13 +91,8 @@ class FileAdapter(BaseAdapter):
             resp.raw = io.open(path, "rb")
             resp.raw.release_conn = resp.raw.close
         except IOError as e:
-            if e.errno == errno.EACCES:
-                resp.status_code = codes.forbidden
-            elif e.errno == errno.ENOENT:
-                resp.status_code = codes.not_found
-            else:
-                resp.status_code = codes.bad_request
-
+            resp.status_code = _io2httperror.get(codes.bad_request)
+            
             # Wrap the error message in a file-like object
             # The error message will be localized, try to convert the string
             # representation of the exception into a byte stream
