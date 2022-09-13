@@ -91,7 +91,7 @@ class FileAdapter(BaseAdapter):
             resp.raw = io.open(path, "rb")
             resp.raw.release_conn = resp.raw.close
         except IOError as e:
-            resp.status_code = _io2httperror.get(codes.bad_request)
+            resp.status_code = _io2httperror.get(e.errno, codes.bad_request)
             
             # Wrap the error message in a file-like object
             # The error message will be localized, try to convert the string
