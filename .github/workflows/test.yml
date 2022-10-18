@@ -14,6 +14,8 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install build dependencies
+        run: pip install --upgrade setuptools setuptools-scm wheel build
       - name: Install package
         run: pip install .
       - name: Install test dependencies
