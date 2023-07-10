@@ -7,6 +7,7 @@ name = "requests-file"
 authors = [{name = "David Shea", email = "reallylongword@gmail.com"}]
 license = {text = "Apache 2.0"}
 description = "File transport adapter for Requests"
+readme = "README.rst"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Plugins",
@@ -14,7 +15,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
 ]
-urls = {Homepage = "http://github.com/dashea/requests-file"}
+urls = {Homepage = "https://github.com/dashea/requests-file"}
 dependencies = ["requests>=1.0.0"]
 dynamic = ["version"]
 
