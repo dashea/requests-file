@@ -6,6 +6,7 @@ import os
 import stat
 import locale
 import io
+
 try:
     from io import BytesIO
 except ImportError:
