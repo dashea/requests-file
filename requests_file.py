@@ -82,6 +82,10 @@ class FileAdapter(BaseAdapter):
             if path_drive and not os.path.splitdrive(path):
                 path = os.sep + os.path.join(path_drive, *path_parts)
 
+            # Fix relative path for Windows
+            if os.name == 'nt' and path.startswith(os.sep):
+                path = path.lstrip(os.sep)
+
             # Use io.open since we need to add a release_conn method, and
             # methods can't be added to file objects in python 2.
             resp.raw = io.open(path, "rb")
