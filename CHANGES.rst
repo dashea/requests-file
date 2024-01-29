@@ -1,3 +1,13 @@
+2.0.0 (29 Jan 2024)
+===================
+- Correct a typo in requests_file.py (github PR #21)
+- Remove dependency on six (github PR #23)
+- Move metadata to pyproject.toml (github PR #26)
+  - Remove support for Python 2
+  - Remove support for raw distutils
+- Correct homepage link in pyproject.toml (github PR #28)
+- Fix black formatting (github PR #27)
+
 1.5.1 (25 Apr 2020)
 ===================
 - Fix python 2.7 compatibility
