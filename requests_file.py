@@ -37,6 +37,7 @@ class FileAdapter(BaseAdapter):
             raise ValueError("file: URLs with hostname components are not permitted")
 
         resp = Response()
+        resp.request = request
 
         # Open the file, translate certain errors into HTTP responses
         # Use urllib's unquote to translate percent escapes into whatever

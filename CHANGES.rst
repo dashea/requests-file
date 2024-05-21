@@ -1,3 +1,7 @@
+2.1.0 (21 May 2024)
+===================
+- Set the request property in the returned Response object
+
 2.0.0 (29 Jan 2024)
 ===================
 - Correct a typo in requests_file.py (github PR #21)
