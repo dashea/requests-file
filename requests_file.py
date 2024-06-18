@@ -14,13 +14,7 @@ try:
 except ImportError:
     from StringIO import StringIO as BytesIO
 
-def parse_query(query):
-    p = {}
-    for i in query.split('&'):
-        i = i.split('=', 1)
-        if len(i) > 1:
-            p[unquote(i[0])] = unquote(i[1])
-    return p
+parse_query = urllib.parse.parse_qs
 
 def open_raw(path, query):
     query = parse_query(query)
