@@ -6,12 +6,43 @@ import os
 import stat
 import locale
 import io
+import glob
+import urllib
 
 try:
     from io import BytesIO
 except ImportError:
     from StringIO import StringIO as BytesIO
 
+def parse_query(query):
+    p = {}
+    for i in query.split('&'):
+        i = i.split('=', 1)
+        if len(i) > 1:
+            p[unquote(i[0])] = unquote(i[1])
+    return p
+
+def open_raw(path, query):
+    query = parse_query(query)
+    try:
+        merge = max(int(query.get('merge')), 1)
+    except ValueError:
+        merge = 1
+    if (query.get('glob') == 'yes'):
+        files = glob.glob(path)
+        filelen = len(files)
+        if filelen > merge:
+            files = files[:merge]
+            filelen = merge
+        if filelen == 0:
+            raise FileNotFoundError(
+    errno.ENOENT, os.strerror(errno.ENOENT), path)
+        elif filelen == 1:
+            path = files[0]
+        else:
+            line = b''.join([io.open(path, 'rb').read() for path in files])
+            return BytesIO(line)
+    return io.open(path, 'rb')
 
 class FileAdapter(BaseAdapter):
     def __init__(self, set_content_length=True):
@@ -86,8 +117,9 @@ class FileAdapter(BaseAdapter):
 
             # Use io.open since we need to add a release_conn method, and
             # methods can't be added to file objects in python 2.
-            resp.raw = io.open(path, "rb")
-            resp.raw.release_conn = resp.raw.close
+            raw = open_raw(path, url_parts.query)
+            resp.raw = raw
+            resp.raw.release_conn = raw.close
         except IOError as e:
             if e.errno == errno.EACCES:
                 resp.status_code = codes.forbidden
@@ -100,18 +132,18 @@ class FileAdapter(BaseAdapter):
             # The error message will be localized, try to convert the string
             # representation of the exception into a byte stream
             resp_str = str(e).encode(locale.getpreferredencoding(False))
-            resp.raw = BytesIO(resp_str)
+            raw = resp.raw = BytesIO(resp_str)
             if self._set_content_length:
                 resp.headers["Content-Length"] = len(resp_str)
 
             # Add release_conn to the BytesIO object
-            resp.raw.release_conn = resp.raw.close
+            resp.raw.release_conn = raw.close
         else:
             resp.status_code = codes.ok
             resp.url = request.url
 
             # If it's a regular file, set the Content-Length
-            resp_stat = os.fstat(resp.raw.fileno())
+            resp_stat = os.fstat(raw.fileno())
             if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
                 resp.headers["Content-Length"] = resp_stat.st_size
 
