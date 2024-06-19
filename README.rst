@@ -23,6 +23,8 @@ Features
 - Might set a Content-Length header
 - That's about it
 
+Also, url can contain query information, such as glob (no - default, yes), glob_include_hidden (no - default, yes), glob_recursive (no, yes - default), text_encoding (default: None)
+
 No encoding information is set in the response object, so be careful using
 Response.text: the chardet library will be used to convert the file to a
 unicode type and it may not detect what you actually want.

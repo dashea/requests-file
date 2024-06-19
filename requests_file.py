@@ -22,8 +22,10 @@ def open_raw(path, query):
         merge = max(int(query.get('merge')), 1)
     except ValueError:
         merge = 1
-    if (query.get('glob') == 'yes'):
-        files = glob.glob(path)
+    if (query.get('glob', 'no').lower() == 'yes'):
+        files = glob.glob(path,
+            include_hidden = (query.get('glob_include_hidden', 'no').lower() != 'no')
+            recursive = (query.get('glob_recursive', 'yes').lower() == 'yes'))
         filelen = len(files)
         if filelen > merge:
             files = files[:merge]
@@ -31,12 +33,11 @@ def open_raw(path, query):
         if filelen == 0:
             raise FileNotFoundError(
     errno.ENOENT, os.strerror(errno.ENOENT), path)
-        elif filelen == 1:
-            path = files[0]
-        else:
-            line = b''.join([io.open(path, 'rb').read() for path in files])
-            return BytesIO(line)
-    return io.open(path, 'rb')
+    line = b''.join([io.open(path, 'rb').read() for path in files])
+    text_encoding = query.get('text_encoding', None)
+    if not text_encoding is None:
+        line = line.decode(text_encoding.lower()).encode('utf-8')
+    return BytesIO(line)
 
 class FileAdapter(BaseAdapter):
     def __init__(self, set_content_length=True):
