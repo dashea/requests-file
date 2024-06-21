@@ -31,7 +31,7 @@ class FileAdapter(BaseAdapter):
         self.__def_query = __def_query
 
     def get_flag(self, query, name):
-        h = query.get(name).lower()
+        h = query.get(name, '').lower()
         if h in ['yes','enable','y','true','1']:
             return True
         elif h in ['no','disable','n','false','0']:
@@ -59,14 +59,16 @@ class FileAdapter(BaseAdapter):
             merge = math.inf
         if (self.get_flag(query, 'glob')):
             files = glob.glob(path,
-                include_hidden = self.get_flag(query, 'glob_include_hidden')
-                recursive = self.get_flag(query, 'glob_recursive')
+                include_hidden = self.get_flag(query, 'glob_include_hidden'),
+                recursive = self.get_flag(query, 'glob_recursive'))
             filelen = len(files)
             if filelen > merge:
                 files = files[:merge]
                 filelen = merge
             if filelen == 0:
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), path)
+        else:
+            files = [path]
         line = b''.join([io.open(path, 'rb').read() for path in files])
         text_encoding = self.get_flag_val(query, 'text_encoding')
         if text_encoding:
@@ -87,9 +89,9 @@ class FileAdapter(BaseAdapter):
 
         # Parse the URL
         url_parts = urlparse(request.url)
-
+        url_parts_netloc = url_parts.netloc
         # Reject URLs with a hostname component
-        if url_parts.netloc and url_parts.netloc != "localhost":
+        if url_parts_netloc and url_parts_netloc != "localhost" and url_parts_netloc != '.':
             raise ValueError("file: URLs with hostname components are not permitted")
 
         resp = Response()
@@ -128,21 +130,25 @@ class FileAdapter(BaseAdapter):
             else:
                 path_drive = ""
 
-            # Try to put the path back together
-            # Join the drive back in, and stick os.sep in front of the path to
-            # make it absolute.
-            path = path_drive + os.sep + os.path.join(*path_parts)
 
+            # Check if netloc equals to '.'. If yes, then path is relative
+            if url_parts_netloc == '.':
+                path = os.path.join(*path_parts)
             # Check if the drive assumptions above were correct. If path_drive
             # is set, and os.path.splitdrive does not return a drive, it wasn't
             # really a drive. Put the path together again treating path_drive
             # as a normal path component.
-            if path_drive and not os.path.splitdrive(path):
+            elif path_drive and not os.path.splitdrive(path):
                 path = os.sep + os.path.join(path_drive, *path_parts)
 
+            # Try to put the path back together
+            # Join the drive back in, and stick os.sep in front of the path to
+            # make it absolute if needed.
+            else:
+                path = path_drive + os.sep + os.path.join(*path_parts)
             # Use io.open since we need to add a release_conn method, and
             # methods can't be added to file objects in python 2.
-            raw = open_raw(path, url_parts.query)
+            raw = self.open_raw(path, url_parts.query)
             resp.raw = raw
             resp.raw.release_conn = raw.close
         except IOError as e:
@@ -168,9 +174,10 @@ class FileAdapter(BaseAdapter):
             resp.url = request.url
 
             # If it's a regular file, set the Content-Length
-            resp_stat = os.fstat(raw.fileno())
-            if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
-                resp.headers["Content-Length"] = resp_stat.st_size
+         #   resp_stat = os.fstat(raw.fileno())
+         #   if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
+       #     resp.headers["Content-Length"] = resp_stat.st_size
+            resp.headers["Content-Length"] = len(raw.getbuffer())
 
         return resp
 
