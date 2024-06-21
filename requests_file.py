@@ -8,6 +8,7 @@ import locale
 import io
 import glob
 import urllib
+import math
 
 try:
     from io import BytesIO
@@ -16,33 +17,62 @@ except ImportError:
 
 parse_query = urllib.parse.parse_qs
 
-def open_raw(path, query):
-    query = parse_query(query)
-    try:
-        merge = max(int(query.get('merge')), 1)
-    except ValueError:
-        merge = 1
-    if (query.get('glob', 'no').lower() == 'yes'):
-        files = glob.glob(path,
-            include_hidden = (query.get('glob_include_hidden', 'no').lower() != 'no')
-            recursive = (query.get('glob_recursive', 'yes').lower() == 'yes'))
-        filelen = len(files)
-        if filelen > merge:
-            files = files[:merge]
-            filelen = merge
-        if filelen == 0:
-            raise FileNotFoundError(
-    errno.ENOENT, os.strerror(errno.ENOENT), path)
-    line = b''.join([io.open(path, 'rb').read() for path in files])
-    text_encoding = query.get('text_encoding', None)
-    if not text_encoding is None:
-        line = line.decode(text_encoding.lower()).encode('utf-8')
-    return BytesIO(line)
-
 class FileAdapter(BaseAdapter):
-    def __init__(self, set_content_length=True):
+    def __init__(self, set_content_length=True, query={}):
         super(FileAdapter, self).__init__()
         self._set_content_length = set_content_length
+        __def_query = {
+            'glob_recursive':True,
+            'glob_include_hidden':False,
+            'glob':False,
+            'merge':1,
+        }
+        __def_query.update(query)
+        self.__def_query = __def_query
+
+    def get_flag(self, query, name):
+        h = query.get(name).lower()
+        if h in ['yes','enable','y','true','1']:
+            return True
+        elif h in ['no','disable','n','false','0']:
+            return False
+        else:
+            return self.__def_query.get(name)
+
+    def get_flag_val(self, query, name):
+        return query.get(name, self.__def_query.get(name))
+
+    def get_flag_val_strict(self, query, name, value_type=int):
+        try:
+            return value_type(str(query.get(name)))
+        except ValueError:
+            val = self.__def_query.get(name, 1)
+            if type(val) != value_type:
+                return value_type(str(val))
+            else:
+                return val
+
+    def open_raw(self, path, query):
+        query = parse_query(query)
+        merge = self.get_flag_val_strict(query, 'merge', int)
+        if merge < 1:
+            merge = math.inf
+        if (self.get_flag(query, 'glob')):
+            files = glob.glob(path,
+                include_hidden = self.get_flag(query, 'glob_include_hidden')
+                recursive = self.get_flag(query, 'glob_recursive')
+            filelen = len(files)
+            if filelen > merge:
+                files = files[:merge]
+                filelen = merge
+            if filelen == 0:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), path)
+        line = b''.join([io.open(path, 'rb').read() for path in files])
+        text_encoding = self.get_flag_val(query, 'text_encoding')
+        if text_encoding:
+            line = line.decode(text_encoding.lower()).encode('utf-8')
+        return BytesIO(line)
+
 
     def send(self, request, **kwargs):
         """Wraps a file, described in request, in a Response object.
