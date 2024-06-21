@@ -31,7 +31,7 @@ class FileAdapter(BaseAdapter):
         self.__def_query = __def_query
 
     def get_flag(self, query, name):
-        h = query.get(name, '').lower()
+        h = query.get(name, [''])[-1].lower()
         if h in ['yes','enable','y','true','1']:
             return True
         elif h in ['no','disable','n','false','0']:
@@ -40,12 +40,12 @@ class FileAdapter(BaseAdapter):
             return self.__def_query.get(name)
 
     def get_flag_val(self, query, name):
-        return query.get(name, self.__def_query.get(name))
+        return query.get(name, [self.__def_query.get(name)])[-1]
 
     def get_flag_val_strict(self, query, name, value_type=int):
         try:
-            return value_type(str(query.get(name)))
-        except ValueError:
+            return value_type(str(query[name][-1]))
+        except Exception:
             val = self.__def_query.get(name, 1)
             if type(val) != value_type:
                 return value_type(str(val))
