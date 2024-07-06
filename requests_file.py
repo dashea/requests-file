@@ -2,21 +2,29 @@ from requests.adapters import BaseAdapter
 from requests.compat import urlparse, unquote
 from requests import Response, codes
 import errno
-import os
 import stat
 import locale
-import io
+from urllib.parse import parse_qs as parse_query
 
 try:
     from io import BytesIO
 except ImportError:
     from StringIO import StringIO as BytesIO
 
+import io
+import os
 
 class FileAdapter(BaseAdapter):
-    def __init__(self, set_content_length=True):
+    def __init__(self, set_content_length=True, query={}):
         super(FileAdapter, self).__init__()
         self._set_content_length = set_content_length
+
+    def open_raw(self, path, query):
+        raw = io.open(path, 'rb')
+        resp_stat = os.fstat(raw.fileno())
+        raw.len = resp_stat.st_size
+        return raw
+
 
     def send(self, request, **kwargs):
         """Wraps a file, described in request, in a Response object.
@@ -31,9 +39,9 @@ class FileAdapter(BaseAdapter):
 
         # Parse the URL
         url_parts = urlparse(request.url)
-
+        url_parts_netloc = url_parts.netloc
         # Reject URLs with a hostname component
-        if url_parts.netloc and url_parts.netloc != "localhost":
+        if url_parts_netloc and url_parts_netloc != "localhost" and url_parts_netloc != '.':
             raise ValueError("file: URLs with hostname components are not permitted")
 
         resp = Response()
@@ -72,22 +80,27 @@ class FileAdapter(BaseAdapter):
             else:
                 path_drive = ""
 
-            # Try to put the path back together
-            # Join the drive back in, and stick os.sep in front of the path to
-            # make it absolute.
-            path = path_drive + os.sep + os.path.join(*path_parts)
 
+            # Check if netloc equals to '.'. If yes, then path is relative
+            if url_parts_netloc == '.':
+                path = os.path.join(*path_parts)
             # Check if the drive assumptions above were correct. If path_drive
             # is set, and os.path.splitdrive does not return a drive, it wasn't
             # really a drive. Put the path together again treating path_drive
             # as a normal path component.
-            if path_drive and not os.path.splitdrive(path):
+            elif path_drive and not os.path.splitdrive(path):
                 path = os.sep + os.path.join(path_drive, *path_parts)
 
+            # Try to put the path back together
+            # Join the drive back in, and stick os.sep in front of the path to
+            # make it absolute if needed.
+            else:
+                path = path_drive + os.sep + os.path.join(*path_parts)
             # Use io.open since we need to add a release_conn method, and
             # methods can't be added to file objects in python 2.
-            resp.raw = io.open(path, "rb")
-            resp.raw.release_conn = resp.raw.close
+            raw = self.open_raw(path, parse_query(url_parts.query))
+            resp.raw = raw
+            resp.raw.release_conn = raw.close
         except IOError as e:
             if e.errno == errno.EACCES:
                 resp.status_code = codes.forbidden
@@ -100,20 +113,20 @@ class FileAdapter(BaseAdapter):
             # The error message will be localized, try to convert the string
             # representation of the exception into a byte stream
             resp_str = str(e).encode(locale.getpreferredencoding(False))
-            resp.raw = BytesIO(resp_str)
+            raw = resp.raw = BytesIO(resp_str)
             if self._set_content_length:
                 resp.headers["Content-Length"] = len(resp_str)
 
             # Add release_conn to the BytesIO object
-            resp.raw.release_conn = resp.raw.close
+            resp.raw.release_conn = raw.close
         else:
             resp.status_code = codes.ok
             resp.url = request.url
 
             # If it's a regular file, set the Content-Length
-            resp_stat = os.fstat(resp.raw.fileno())
-            if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
-                resp.headers["Content-Length"] = resp_stat.st_size
+         #   resp_stat = os.fstat(raw.fileno())
+            if self._set_content_length:
+                resp.headers["Content-Length"] = raw.len
 
         return resp
 
