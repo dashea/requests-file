@@ -17,7 +17,15 @@ class FileAdapter(BaseAdapter):
     def __init__(self, set_content_length=True):
         super(FileAdapter, self).__init__()
         self._set_content_length = set_content_length
-
+    
+    def open_raw(self, path, query):
+        raw = io.open(path, 'rb')
+        # If it's a regular file, set the Content-Length
+        resp_stat = os.fstat(raw.fileno())
+        if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
+            raw.len = resp_stat.st_size
+        return raw
+       
     def send(self, request, **kwargs):
         """Wraps a file, described in request, in a Response object.
 
@@ -61,7 +69,9 @@ class FileAdapter(BaseAdapter):
             # path, and remove any empty path parts between the drive and the path.
             # Assume that a part ending with : or | (legacy) is a drive.
             if path_parts and (
-                path_parts[0].endswith("|") or path_parts[0].endswith(":")
+                path_parts[0].endswith("|") or 
+                path_parts[0].endswith(":") or 
+                path_parts[0] == '.'
             ):
                 path_drive = path_parts.pop(0)
                 if path_drive.endswith("|"):
@@ -81,12 +91,12 @@ class FileAdapter(BaseAdapter):
             # is set, and os.path.splitdrive does not return a drive, it wasn't
             # really a drive. Put the path together again treating path_drive
             # as a normal path component.
-            if path_drive and not os.path.splitdrive(path):
+            if path_drive and not os.path.splitdrive(path) and path_drive != '.':
                 path = os.sep + os.path.join(path_drive, *path_parts)
 
             # Use io.open since we need to add a release_conn method, and
             # methods can't be added to file objects in python 2.
-            resp.raw = io.open(path, "rb")
+            resp.raw = self.open_raw(path)
             resp.raw.release_conn = resp.raw.close
         except IOError as e:
             if e.errno == errno.EACCES:
@@ -111,9 +121,8 @@ class FileAdapter(BaseAdapter):
             resp.url = request.url
 
             # If it's a regular file, set the Content-Length
-            resp_stat = os.fstat(resp.raw.fileno())
-            if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
-                resp.headers["Content-Length"] = resp_stat.st_size
+            if hasattr(resp, 'len'):
+                resp.headers["Content-Length"] = resp.len
 
         return resp
 
