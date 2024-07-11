@@ -21,7 +21,7 @@ except ImportError:
 class FileAdapter(BaseAdapter):
     def __init__(self, set_content_length=True, netloc_mounts = {'localhost': ''}):
         super(FileAdapter, self).__init__()
-        self.netloc_mounts = netloc_mouuts
+        self.netloc_mounts = netloc_mounts
         self._set_content_length = set_content_length
     
     def open_raw(self, path, query):
