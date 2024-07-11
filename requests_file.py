@@ -6,6 +6,11 @@ import os
 import stat
 import locale
 import io
+from pathlib import Path
+try:
+    from urllib.parse import parse_qs
+except ImportError:
+    from urlparse import parse_qs
 
 try:
     from io import BytesIO
@@ -14,10 +19,19 @@ except ImportError:
 
 
 class FileAdapter(BaseAdapter):
-    def __init__(self, set_content_length=True):
+    def __init__(self, set_content_length=True, netloc_mounts = {'localhost': ''}):
         super(FileAdapter, self).__init__()
+        self.netloc_mounts = netloc_mounts
         self._set_content_length = set_content_length
-
+    
+    def open_raw(self, path, query):
+        raw = io.open(path, 'rb')
+        # If it's a regular file, set the Content-Length
+        resp_stat = os.fstat(raw.fileno())
+        if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
+            raw.len = resp_stat.st_size
+        return raw
+       
     def send(self, request, **kwargs):
         """Wraps a file, described in request, in a Response object.
 
@@ -33,7 +47,7 @@ class FileAdapter(BaseAdapter):
         url_parts = urlparse(request.url)
 
         # Reject URLs with a hostname component
-        if url_parts.netloc and url_parts.netloc != "localhost":
+        if url_parts.netloc and url_parts.netloc not in self.netloc_mounts:
             raise ValueError("file: URLs with hostname components are not permitted")
 
         resp = Response()
@@ -51,6 +65,9 @@ class FileAdapter(BaseAdapter):
             while path_parts and not path_parts[0]:
                 path_parts.pop(0)
 
+            # Add netloc mount
+            path_parts = list(Path(str(self.netloc_mounts.get(url_parts.netloc,''))).parts) + path_parts
+
             # If os.sep is in any of the parts, someone fed us some shenanigans.
             # Treat is like a missing file.
             if any(os.sep in p for p in path_parts):
@@ -60,9 +77,7 @@ class FileAdapter(BaseAdapter):
             # so that a directory separator can correctly be added to the real
             # path, and remove any empty path parts between the drive and the path.
             # Assume that a part ending with : or | (legacy) is a drive.
-            if path_parts and (
-                path_parts[0].endswith("|") or path_parts[0].endswith(":")
-            ):
+            if path_parts and ( path_parts[0].endswith("|") or path_parts[0].endswith(":") ):
                 path_drive = path_parts.pop(0)
                 if path_drive.endswith("|"):
                     path_drive = path_drive[:-1] + ":"
@@ -86,7 +101,7 @@ class FileAdapter(BaseAdapter):
 
             # Use io.open since we need to add a release_conn method, and
             # methods can't be added to file objects in python 2.
-            resp.raw = io.open(path, "rb")
+            resp.raw = self.open_raw(path, parse_qs(url_parts.query))
             resp.raw.release_conn = resp.raw.close
         except IOError as e:
             if e.errno == errno.EACCES:
@@ -111,9 +126,8 @@ class FileAdapter(BaseAdapter):
             resp.url = request.url
 
             # If it's a regular file, set the Content-Length
-            resp_stat = os.fstat(resp.raw.fileno())
-            if stat.S_ISREG(resp_stat.st_mode) and self._set_content_length:
-                resp.headers["Content-Length"] = resp_stat.st_size
+            if hasattr(resp, 'len'):
+                resp.headers["Content-Length"] = resp.len
 
         return resp
 
