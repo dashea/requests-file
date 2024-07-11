@@ -8,6 +8,11 @@ import locale
 import io
 from pathlib import Path
 try:
+    from urllib.parse import parse_qs
+except ImportError:
+    from urlparse import parse_qs
+
+try:
     from io import BytesIO
 except ImportError:
     from StringIO import StringIO as BytesIO
@@ -96,7 +101,7 @@ class FileAdapter(BaseAdapter):
 
             # Use io.open since we need to add a release_conn method, and
             # methods can't be added to file objects in python 2.
-            resp.raw = self.open_raw(path)
+            resp.raw = self.open_raw(path, parse_qs(url_parts.query))
             resp.raw.release_conn = resp.raw.close
         except IOError as e:
             if e.errno == errno.EACCES:
