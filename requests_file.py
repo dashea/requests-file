@@ -6,7 +6,7 @@ import os
 import stat
 import locale
 import io
-
+from pathlib import Path
 try:
     from io import BytesIO
 except ImportError:
@@ -14,8 +14,9 @@ except ImportError:
 
 
 class FileAdapter(BaseAdapter):
-    def __init__(self, set_content_length=True):
+    def __init__(self, set_content_length=True, netloc_mounts = {'localhost': ''}):
         super(FileAdapter, self).__init__()
+        self.netloc_mounts = netloc_mouuts
         self._set_content_length = set_content_length
     
     def open_raw(self, path, query):
@@ -41,7 +42,7 @@ class FileAdapter(BaseAdapter):
         url_parts = urlparse(request.url)
 
         # Reject URLs with a hostname component
-        if url_parts.netloc and url_parts.netloc != "localhost":
+        if url_parts.netloc and url_parts.netloc not in self.netloc_mounts:
             raise ValueError("file: URLs with hostname components are not permitted")
 
         resp = Response()
@@ -59,6 +60,9 @@ class FileAdapter(BaseAdapter):
             while path_parts and not path_parts[0]:
                 path_parts.pop(0)
 
+            # Add netloc mount
+            path_parts = list(Path(str(self.netloc_mounts.get(url_parts.netloc,''))).parts) + path_parts
+
             # If os.sep is in any of the parts, someone fed us some shenanigans.
             # Treat is like a missing file.
             if any(os.sep in p for p in path_parts):
@@ -68,11 +72,7 @@ class FileAdapter(BaseAdapter):
             # so that a directory separator can correctly be added to the real
             # path, and remove any empty path parts between the drive and the path.
             # Assume that a part ending with : or | (legacy) is a drive.
-            if path_parts and (
-                path_parts[0].endswith("|") or 
-                path_parts[0].endswith(":") or 
-                path_parts[0] == '.'
-            ):
+            if path_parts and ( path_parts[0].endswith("|") or path_parts[0].endswith(":") ):
                 path_drive = path_parts.pop(0)
                 if path_drive.endswith("|"):
                     path_drive = path_drive[:-1] + ":"
@@ -91,7 +91,7 @@ class FileAdapter(BaseAdapter):
             # is set, and os.path.splitdrive does not return a drive, it wasn't
             # really a drive. Put the path together again treating path_drive
             # as a normal path component.
-            if path_drive and not os.path.splitdrive(path) and path_drive != '.':
+            if path_drive and not os.path.splitdrive(path):
                 path = os.sep + os.path.join(path_drive, *path_parts)
 
             # Use io.open since we need to add a release_conn method, and
