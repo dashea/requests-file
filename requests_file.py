@@ -38,6 +38,7 @@ class FileAdapter(BaseAdapter):
 
         resp = Response()
         resp.request = request
+        resp.url = request.url
 
         # Open the file, translate certain errors into HTTP responses
         # Use urllib's unquote to translate percent escapes into whatever
@@ -101,6 +102,7 @@ class FileAdapter(BaseAdapter):
             # representation of the exception into a byte stream
             resp_str = str(e).encode(locale.getpreferredencoding(False))
             resp.raw = BytesIO(resp_str)
+            resp.reason = resp_str
             if self._set_content_length:
                 resp.headers["Content-Length"] = len(resp_str)
 
@@ -108,7 +110,6 @@ class FileAdapter(BaseAdapter):
             resp.raw.release_conn = resp.raw.close
         else:
             resp.status_code = codes.ok
-            resp.url = request.url
 
             # If it's a regular file, set the Content-Length
             resp_stat = os.fstat(resp.raw.fileno())
